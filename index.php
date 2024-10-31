@@ -7,48 +7,49 @@
     ?>
 </head>
 <body>
-    <h1>Authorisation</h1>
-    <form method="post">
-        <input type="text" placeholder="login..." name="login" id="login"/>
-        <br>
-        <input type="password" placeholder="password..." name="password" id="password"/>
-        <br>
-        <?php
-            function m() {
+    <?php 
+        include "./php/components/header.php";
+    ?>
+    <div class="container">
+        <h1>Authorisation</h1>
 
-                if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-                    return;
-                }
-                include_once "./php/user.php";
-                include_once "./php/database.php";
-                $db = new DataBase();
-                if (empty($_POST['login']) || empty($_POST["password"])) {
-                    echo "has empty fields<br>";
-                    return;
+        <form method="post">
+            <input type="text" placeholder="login..." name="login" id="login"/>
+            <br>
+            <input type="password" placeholder="password..." name="password" id="password"/>
+            <br>
+            <?php
+                function m() {    
+                    if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+                        return;
+                    }
+                    include_once "./php/user.php";
+                    include_once "./php/database.php";
+                    $db = new DataBase();
+                    if (empty($_POST['login']) || empty($_POST["password"])) {
+                        throw new Exception("has empty fields");
+                    }
+                    $user = $db->getUserBy('login', $_POST['login']);                    
+                    if (empty($user)) {
+                        throw new Exception("login or password is not correct");
+                    }
+                    $password = sha1($_POST['password']);
+                    if ($password != $user->getPassword()) {
+                        throw new Exception("login or password is not correct");
+                    }
+                    session_start();
+                    $_SESSION['auth'] = $user->getId();
+                    header("Location:./profile.php");
                 }
                 try {
-                    $user = $db->getUserBy('login', $_POST['login']);
+                    m();
                 } catch (Exception $err) {
-                    echo $err->getMessage()."<br>";
-                    return;
+                    echo "<div class='error'>".$err->getMessage()."</div>";
                 }
-                if (empty($user)) {
-                    echo "login or password is not correct<br>";
-                    return;
-                }
-                $password = sha1($_POST['password']);
-                if ($password != $user->getPassword()) {
-                    echo "login or password is not correct<br>";
-                    return;
-                }
-                session_start();
-                $_SESSION['auth'] = $user->getId();
-                header("Location: profile.php");     
-            }
-            m();
-        ?>
-        <button type="submit">sign in</button>
-        or <a href="./register.php">sign up</a>
-    </form>
+            ?>
+            <button type="submit">sign in</button>
+            or <a href="./register.php">sign up</a>
+        </form>
+    </div>
 </body>
 </html>

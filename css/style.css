@@ -1,0 +1,146 @@
+:root {
+    --primary: rgb(71, 105, 229);
+    --secondary: rgb(55, 50, 73);
+    --light: rgb(210, 218, 227);
+    --dark: rgb(30, 24, 40);
+    --error: rgb(197, 35, 35);
+    --success: rgb(50, 123, 74);
+}
+.bg-dark {
+    background-color: var(--dark);
+}
+.bg-light {
+    background-color: var(--light);
+}
+.bg-secondary {
+    background-color: var(--secondary);
+}
+.bg-primary {
+    background-color: var(--primary)
+}
+.bg-error {
+    background-color: color-mix(in srgb, var(--error) 30%, transparent)
+}
+.bg-success {   
+    background-color: color-mix(in srgba, var(--success) 30%, transparent)
+}
+.f-light {
+    color: var(--light);
+}
+.f-primary {
+    color: var(--primary);
+}
+.f-secondary {
+    color: var(--secondary);
+}
+.f-dark {
+    color: var(--dark);
+}
+.f-error {
+    color: var(--error);
+}
+.f-success {
+    color: var(--success);
+}
+.brd-primary {
+    border: 1px solid var(--primary);
+}
+.brd-secondary {
+    border: 1px solid var(--secondary);
+}
+.brd-light {
+    border: 1px solid var(--light);
+}
+.brd-dark {
+    border: 1px solid var(--dark);
+}
+.brd-error {
+    border: 1px solid var(--error);
+}
+.brd-success {
+    border: 1px solid var(--success);
+}
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--dark);
+    color: var(--light);
+}
+#header {
+    display: grid;
+    height: 55px;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+    grid-template-rows: 100%;
+}
+#header > * {
+    justify-self: center;
+    align-self: center;
+}
+#header form {
+    display: inline-block;
+    padding: 0;
+}
+#header a, #header button {
+    width: max-content;
+    cursor: pointer;
+    border: initial;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    text-decoration: underline;
+    background: initial;    
+}
+input {
+    color: var(--light);
+    border: 1px solid var(--primary);
+    background-color: var(--secondary);
+}
+input::placeholder {
+    color: var(--primary);
+}
+input:focus {
+    outline: 0;
+}
+* {
+    color: var(--light);
+}
+a {
+    color: var(--primary);
+}
+button {
+    color: var(--primary);
+    border: 1px solid var(--primary);
+    background: var(--secondary);
+}
+table > tbody > tr > td {
+    padding: 6px;
+    align-items: center;
+    justify-content: center;
+}
+.error {
+    --main-color: var(--error);
+    padding: 0 1ch;
+    color: var(--main-color);
+    border: 1px solid var(--main-color);
+    border-radius: 2px;
+    background-color: color-mix(in srgb, var(--main-color) 30%, transparent)
+}
+.success {
+    --main-color: var(--success);
+    padding: 0 5px 0 5px;
+    color: var(--main-color);
+    border: 1px solid var(--main-color);
+    border-radius: 2px;
+    background-color: color-mix(in srgb, var(--main-color) 30%, transparent)
+}
+.container {
+    display: flex;
+    width: 100%;
+    height: fit-content;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+form > * {
+    margin: 8px;
+}
