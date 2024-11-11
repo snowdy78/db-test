@@ -11,24 +11,26 @@
         include "./php/components/header.php";
     ?>
     <div class="container">
-
         <?php
             if (session_status() != PHP_SESSION_ACTIVE) {
                 session_start();
             }
-            if (empty($_SESSION['auth'])) {
-                header('Location: index.php');
+            if (empty($_SESSION['auth']) && empty($_GET['user'])) {
+                echo "<script>history.back();</script>";
                 return;
             }
-            include "./php/database.php";
-
+            include_once "./php/database.php";
+            $db = new DataBase();
+            if (empty($_GET['user'])) {
+                $user = $db->getUserBy('id', $_SESSION['auth']);
+            } else {
+                $user = $db->getUserBy('id', $_GET['user']);
+            }
             try {
                 $success = m();
             }
             catch (Exception $err) {} 
-            $db = new DataBase();
 
-            $user = $db->getUserBy('id', $_SESSION['auth']);
             $login = $user->getLogin();
             $email = $user->getEmail();
             $reg_date = $user->getRegistrationDate();
@@ -102,19 +104,10 @@
                 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
                     return;
                 }
-                include_once "./php/database.php";
-                if (session_status() != PHP_SESSION_ACTIVE) {
-                    session_start();
-                }
-                if (empty($_SESSION['auth'])) {
-                    header('Location: ../index.php');
-                    return;
-                }
                 if (empty($_POST['login']) && (empty($_POST['password']) || empty($_POST['password-repeat']))) {
                     throw new Exception("incorrect value");
                 }
-                $db = new DataBase();
-                $user = $db->getUserBy('id', $_SESSION['auth']);
+                global $user;
                 if (!empty($_POST['login'])) {
                     if ($user->getLogin() != $_POST['login']) {
                         $user->setLogin($_POST['login']);
