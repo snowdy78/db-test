@@ -1,6 +1,7 @@
 <header id="header" class="bg-secondary f-light">
     <a href="./index.php">Главная</a>
-    <a href="./index.php">вход</a>
+    <a href="./index.php">Вход</a>
+    <a href="./users.php">Список</a>
     <?php
         if (session_status() != PHP_SESSION_ACTIVE) {
             session_start();

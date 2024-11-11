@@ -144,3 +144,18 @@ table > tbody > tr > td {
 form > * {
     margin: 8px;
 }
+table {
+    border: 1px solid var(--primary);
+    border-spacing: 0 !important;
+}
+.users * > td {
+    --main-color: var(--primary);
+
+    border: 1px solid var(--main-color);
+}
+.search-form { 
+
+}
+.search-form input[type=date] {
+    background-color: var(--primary);
+}
