@@ -48,8 +48,8 @@
         {
             mysqli::__construct("localhost", "root", "", "obvp", 3306);
         }
-        public function getUserBy($key, $value, $columns = "*") {
-            $request = $this->query("SELECT $columns FROM `users` WHERE $key='$value'");
+        public function getUserBy($key, $value) {
+            $request = $this->query("SELECT * FROM `users` WHERE $key='$value'");
             if (empty($request)) {
                 throw new Exception("User not found");
             }
@@ -58,6 +58,23 @@
                 throw new Exception("User not found");    
             }
             return new User($this, $user["id"]);
+        }
+        public function getAllUsersBy($condition = null, $columns = "*") {
+            $request = $this->query("SELECT * FROM `users` ".(empty($condition) ? "" : "WHERE $condition"));
+            if (empty($request)) {
+                throw new Exception("Error request");
+            }
+            $users = $request->fetch_all(MYSQLI_ASSOC);
+            if (empty($users)) {
+                throw new Exception("User not found");    
+            }
+            $user_arr = array();
+            $i = 0;
+            foreach ($users as $user) {
+                $user_arr[$i] = new User($this, $user['id']);
+                $i++;
+            }
+            return $user_arr;
         }
         public function addUser(string $login, string $email, string $password) {
             $table_name = User::$table_name;
@@ -71,6 +88,10 @@
             if (empty($request)) {
                 throw new Exception("Cannot authorise user");
             }
+        }
+        public function removeUser($id) {
+            $query = "DELETE FROM `users` WHERE id=$id";
+            $this->query($query);
         }
     }
 ?>
