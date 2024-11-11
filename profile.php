@@ -17,16 +17,14 @@
                 session_start();
             }
             if (empty($_SESSION['auth'])) {
+                header('Location: index.php');
                 return;
             }
-            include "./php/success.php";
-            include "./php/user.php";
             include "./php/database.php";
 
             try {
-                m();
+                $success = m();
             }
-            catch (Success $success) {}
             catch (Exception $err) {} 
             $db = new DataBase();
 
@@ -83,13 +81,13 @@
             
             if (isset($err) || isset($success)) {
                 $obj = $err ?? $success;
-                $err_message = $obj->getMessage();
+                $message = gettype($obj) == 'string' ? $obj : $obj->getMessage();
                 print "
                         <tr>
 
                             <td colspan=2>
                                 <div class='".(isset($err) ? 'error' : 'success')."'>
-                                    $err_message
+                                    $message
                                 </div>
                             </td>
                         </tr>
@@ -104,7 +102,6 @@
                 if ($_SERVER['REQUEST_METHOD'] != 'POST') {
                     return;
                 }
-                include_once "./php/user.php";
                 include_once "./php/database.php";
                 if (session_status() != PHP_SESSION_ACTIVE) {
                     session_start();
@@ -121,7 +118,7 @@
                 if (!empty($_POST['login'])) {
                     if ($user->getLogin() != $_POST['login']) {
                         $user->setLogin($_POST['login']);
-                        throw new Success("Success login changed!<br>");
+                        return "Login successfully changed!";
                     }
                 }
                 if (!empty($_POST['password']) && !empty($_POST['password-repeat'])) { 
@@ -129,7 +126,7 @@
         
                     if ($_POST['password'] == $_POST['password-repeat'] && $encoded_password != $user->getPassword()) {
                         $user->setPassword($_POST['password']);
-                        throw new Success("Success password changed!<br>");
+                        return "Password successfully changed!";
                     } else if ($encoded_password === $user->getPassword()) {
                         throw new Exception("current password and new password are the same<br>");
                     } else {
@@ -137,7 +134,6 @@
                     }    
                 }
             }
-            print "go to <a href='../index.php'>authorisation</a><br>";
         ?>
     </div>
 </body>
