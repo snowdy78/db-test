@@ -159,3 +159,15 @@ table {
 .search-form input[type=date] {
     background-color: var(--primary);
 }
+
+input::file-selector-button {
+    color: var(--primary);
+    border: 0;
+    cursor: pointer;
+    border-right: 1px solid var(--primary);
+    background: var(--secondary);
+}
+.avatar {
+    max-height: 100px;
+    border-radius: 100%;
+}
