@@ -1,15 +1,24 @@
 <?php
     class IncorrectFile extends Exception {}
+    enum UserAccessLevel {
+        case User; 
+        case Admin;
+    }
     class User {
         public static string $table_name = "`users`";
-        private mysqli $database;
+        private DataBase $database;
         private int $id;
+        
         private function get($key) {
             $table_name = self::$table_name;
             $users = $this->database->query("SELECT $key FROM $table_name WHERE id=$this->id");
-            return $users->fetch_assoc()[$key];
+            return $users->fetchAll()[$key];
         }
-        public function __construct(mysqli $db, int $id) {
+        private function set($operations) {
+            $table_name = self::$table_name;
+            $this->database->query("UPDATE $table_name SET $operations WHERE id=$this->id");
+        }
+        public function __construct(DataBase $db, int $id) {
             $this->database = $db;
             $this->id = $id;
         }
@@ -27,28 +36,30 @@
             }
             $encoded_file = 'data:'.$size['mime'].';base64,'.base64_encode(file_get_contents($file['tmp_name']));
 
-            $table_name = self::$table_name;
-            $this->database->query("UPDATE $table_name 
-                SET enc_image='$encoded_file', image_width=$sizex, image_height=$sizey, image_name='$filename' 
-                WHERE id=$this->id");
+            $this->set("enc_image='$encoded_file', image_width=$sizex, image_height=$sizey, image_name='$filename'");
         }
         public function setLogin(string $login) {
-            $table_name = self::$table_name;
-            $this->database->query("UPDATE $table_name SET login='$login' WHERE id=$this->id");
+            $this->set("login='$login'");
         }
         public function setEmail(string $email) {
-            $table_name = self::$table_name;
-            $this->database->query("UPDATE $table_name SET email='$email' WHERE id=$this->id");
+            $this->set("email='$email'");
         }
         public function setPassword(string $password) {
-            $table_name = self::$table_name;
             $sha1_password = sha1($password);
-            $this->database->query("UPDATE $table_name SET password='$sha1_password' WHERE id=$this->id");
+            $this->set("password='$sha1_password'");
         }
         public function getAvatarImageDataUrl(): string | null {
             $val = htmlspecialchars($this->get('enc_image'));
             $val = trim($val);
             return $val;
+        }
+        public function setAccessLevel(UserAccessLevel $level) {
+            if ($level == UserAccessLevel::User) {
+                $this->set("access_level='user'");
+            }
+            else if ($level == UserAccessLevel::Admin) {
+                $this->set("access_level='admin'");
+            }
         }
         public function getAvatarWidth(): int | null {
             return $this->get('image_width');
@@ -61,6 +72,9 @@
         }
         public function getId(): int {
             return $this->id;
+        }
+        public function getAccessLevel(): string {
+            return $this->get('access_level');
         }
         public function getLogin(): mixed {
             return $this->get("login");
@@ -77,17 +91,34 @@
             return $reg_date;
         }
     }
-    class DataBase extends mysqli {
+    class DataBase extends PDO {
         public function __construct()
         {
-            mysqli::__construct("localhost", "root", "", "obvp", 3306);
+            PDO::__construct("sqlite:obvp.db");
+            try {
+
+                $this->exec('CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY,
+                    login TEXT NOT NULL,
+                    password TEXT NOT NULL,
+                    email TEXT NOT NULL,
+                    reg_date DATE NOT NULL,
+                    access_level TEXT CHECK(access_level IN ("user", "admin")) NOT NULL DEFAULT("user"),
+                    enc_image TEXT DEFAULT(NULL),
+                    image_width INTEGER DEFAULT(NULL),
+                    image_height INTEGER DEFAULT(NULL),
+                    image_name TEXT DEFAULT(NULL)
+                ) WITHOUT rowid');
+            } catch (Exception $err) {
+                echo $err->getMessage();
+            }
         }
         public function getUserBy($key, $value) {
-            $request = $this->query("SELECT * FROM `users` WHERE $key='$value'");
+            $request = $this->query("SELECT * FROM `users` WHERE $key=$value");
             if (empty($request)) {
                 throw new Exception("User not found");
             }
-            $user = $request->fetch_assoc();
+            $user = $request->fetch();
             if (empty($user)) {
                 throw new Exception("User not found");    
             }
@@ -98,7 +129,7 @@
             if (empty($request)) {
                 throw new Exception("Error request");
             }
-            $users = $request->fetch_all(MYSQLI_ASSOC);
+            $users = $request->fetchAll(PDO::FETCH_ASSOC);
             if (empty($users)) {
                 throw new Exception("User not found");    
             }
@@ -116,8 +147,8 @@
             $sql_date = $date["mday"]."-".$date["mon"]."-".$date["year"];
             $query = 
                 "INSERT INTO 
-                $table_name (id, login, email, password, reg_date) 
-                VALUES (DEFAULT, '$login', '$email', SHA1('$password'), STR_TO_DATE('$sql_date', '%d-%m-%Y'))";
+                $table_name (id, login, email, password, reg_date, access_level, enc_image, image_width, image_height, image_name) 
+                VALUES (DEFAULT, '$login', '$email', SHA1('$password'), strftime('$sql_date'), DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT)";
             $request = $this->query($query);
             if (empty($request)) {
                 throw new Exception("Cannot authorise user");

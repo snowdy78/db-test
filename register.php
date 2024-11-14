@@ -25,7 +25,6 @@
                     if ($_SERVER['REQUEST_METHOD'] != 'POST') {
                         return;
                     }
-                    include_once "./php/user.php";
                     include_once "./php/database.php";
                     $db = new DataBase();
                     if (empty($_POST['login']) || empty($_POST['email']) || empty($_POST["password"])) {
