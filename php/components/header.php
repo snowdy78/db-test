@@ -9,7 +9,7 @@
         if (!isset($_SESSION['auth'])) {
             echo "<a href='./register.php'>Регистрация</a>";
         } else {
-            echo "<a href=''>Профиль</a>";
+            echo "<a href='./profile.php'>Профиль</a>";
             echo '<form method="post" action="./php/logout.php"><button type="submit">Выход</button></form>';
         }
     ?>

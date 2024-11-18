@@ -5,14 +5,19 @@
         case Admin;
     }
     class User {
-        public static string $table_name = "`users`";
+        public static string $table_name = "users";
         private DataBase $database;
         private int $id;
         
         private function get($key) {
             $table_name = self::$table_name;
-            $users = $this->database->query("SELECT $key FROM $table_name WHERE id=$this->id");
-            return $users->fetchAll()[$key];
+            $stmt = $this->database->prepare("SELECT * FROM $table_name WHERE id=:id");
+            $stmt->execute(['id' => $this->id]);
+            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if (empty($rows)) {
+                return null;
+            }
+            return $rows[0][$key];
         }
         private function set($operations) {
             $table_name = self::$table_name;
@@ -91,45 +96,66 @@
             return $reg_date;
         }
     }
-    class DataBase extends PDO {
+    class DataBase extends \PDO {
         public function __construct()
         {
-            PDO::__construct("sqlite:obvp.db");
             try {
+                \PDO::__construct("sqlite:obvp.db");
 
-                $this->exec('CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY,
+                $this->exec("CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
                     login TEXT NOT NULL,
                     password TEXT NOT NULL,
                     email TEXT NOT NULL,
                     reg_date DATE NOT NULL,
-                    access_level TEXT CHECK(access_level IN ("user", "admin")) NOT NULL DEFAULT("user"),
+                    access_level TEXT CHECK(access_level IN ('user', 'admin')) NOT NULL DEFAULT('user'),
                     enc_image TEXT DEFAULT(NULL),
                     image_width INTEGER DEFAULT(NULL),
                     image_height INTEGER DEFAULT(NULL),
                     image_name TEXT DEFAULT(NULL)
-                ) WITHOUT rowid');
+                )");
+                $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             } catch (Exception $err) {
                 echo $err->getMessage();
             }
         }
-        public function getUserBy($key, $value) {
-            $request = $this->query("SELECT * FROM `users` WHERE $key=$value");
+        private function executeQuery(string $query, array $keys = [], array $values = [], string $operation = '=') {
+            if (!empty($keys)) {
+                $query .= " WHERE ";
+            }
+            $i = 0;
+            foreach ($keys as $key) {
+                $value = '?';
+                if ($key === 'reg_date') {
+                    
+                    $query .= "reg_date = ?";
+                }
+                else 
+                    $query .= "$key $operation $value";
+                if ($i != sizeof($keys) - 1) {
+                    $query .= " AND ";
+                }
+                $i++;
+            }
+            $request = $this->prepare($query);
             if (empty($request)) {
                 throw new Exception("User not found");
             }
-            $user = $request->fetch();
-            if (empty($user)) {
-                throw new Exception("User not found");    
+            $request->execute($values);
+            return $request;
+        }
+        public function getUserBy(array $keys, array $values, $operation = '=') {
+            $request = $this->executeQuery("SELECT * FROM users", $keys, $values, $operation);
+            $rows = $request->fetchAll(PDO::FETCH_ASSOC);
+            if (empty($rows)) {
+                throw new Exception("User not found");
             }
+            $user = $rows[0];
             return new User($this, $user["id"]);
         }
-        public function getAllUsersBy($condition = null, $columns = "*") {
-            $request = $this->query("SELECT * FROM `users` ".(empty($condition) ? "" : "WHERE $condition"));
-            if (empty($request)) {
-                throw new Exception("Error request");
-            }
-            $users = $request->fetchAll(PDO::FETCH_ASSOC);
+        public function getAllUsersBy(array $keys, array $values, $operation = '=') {
+            $request = $this->executeQuery("SELECT * FROM users", $keys, $values, $operation);
+            $users = $request->fetchAll();
             if (empty($users)) {
                 throw new Exception("User not found");    
             }
@@ -142,21 +168,30 @@
             return $user_arr;
         }
         public function addUser(string $login, string $email, string $password) {
+            try {
+                $user = $this->getUserBy(['login', 'email'], [$login, $email]);
+                throw new Exception('User is already defined');
+            } catch (Exception $err) {}
+            $sha1_password = sha1($password);
+
             $table_name = User::$table_name;
             $date = getdate();
-            $sql_date = $date["mday"]."-".$date["mon"]."-".$date["year"];
+            $str_date = $date["mday"]."-".$date["mon"]."-".$date["year"];
+            var_dump($str_date);
             $query = 
                 "INSERT INTO 
-                $table_name (id, login, email, password, reg_date, access_level, enc_image, image_width, image_height, image_name) 
-                VALUES (DEFAULT, '$login', '$email', SHA1('$password'), strftime('$sql_date'), DEFAULT, DEFAULT, DEFAULT, DEFAULT, DEFAULT)";
-            $request = $this->query($query);
-            if (empty($request)) {
-                throw new Exception("Cannot authorise user");
-            }
+                $table_name (login, email, password, reg_date) 
+                VALUES (:login, :email, :sha1_password, :reg_date)";
+            $request = $this->prepare($query);
+            return $request->execute(['login' => $login, 'email' => $email, 'sha1_password' => $sha1_password, "reg_date" => $str_date]);
         }
         public function removeUser($id) {
-            $query = "DELETE FROM `users` WHERE id=$id";
-            $this->query($query);
+            $this->beginTransaction();
+            $table_name = User::$table_name;
+            $request = $this->prepare("DELETE FROM $table_name WHERE id=:id");
+            $iid = intval($id);
+            $request->bindParam(':id', $iid, PDO::PARAM_INT);
+            return;
         }
     }
 ?>

@@ -30,15 +30,21 @@
                     if (empty($_POST['login']) || empty($_POST['email']) || empty($_POST["password"])) {
                         throw new Exception("has empty fields<br>");
                     }
-                    $db->addUser(
+                    $state = $db->addUser(
                         $_POST['login'],
                         $_POST["email"],
                         $_POST["password"]
                     );
-                    header("Location: ./index.php");
+                    if (!$state) {
+                        throw new Exception("User is not registered. Try again");
+                    }
+                    return "Successfully registred!";
                 }
                 try {
-                    m();
+                    $message = m();
+                    if (!empty($message)) {
+                        echo "<div class='success'>$message</div>";
+                    } 
                 } catch(Exception $err) {
                     echo "<div class='error'>".$err->getMessage()."</div>";
                 }

@@ -61,9 +61,9 @@
             include_once "./php/database.php";
             $db = new DataBase();
             if (empty($_GET['user'])) {
-                $user = $db->getUserBy('id', $_SESSION['auth']);
+                $user = $db->getUserBy(['id'], [$_SESSION['auth']]);
             } else {
-                $user = $db->getUserBy('id', $_GET['user']);
+                $user = $db->getUserBy(['id'], [$_GET['user']]);
             }
             try {
                 $success = m($user);

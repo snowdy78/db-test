@@ -20,31 +20,27 @@
     <?php 
         include_once "php/database.php";
         $db = new DataBase();
+        $keys = [];
+        $values = [];
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $login = $_POST["login"];
-            $login_condition = empty($login) ? "" : "login LIKE '$login%'";
-            $email = $_POST["email"];
-            $email_condition = empty($email) ? "" : "email LIKE '$email%'";
-            $date_condition = "";
-            if (!empty($_POST["date"])) {
-                $date = getdate(strtotime($_POST["date"]));
-                $str_date = $date["mday"].".".$date["mon"].".".$date["year"];
-                $date_condition = "reg_date=STR_TO_DATE('$str_date', '%d.%m.%Y')";
+            $login = empty($_POST["login"]) ? null : '%'.$_POST["login"].'%';
+            $email = empty($_POST["email"]) ? null : '%'.$_POST['email'].'%';
+            $date = empty($_POST["date"]) ? null : getdate(strtotime($_POST["date"]));
+            $str_date = null;
+            if (!empty($date)) {
+                $str_date = $date["mday"]."-".$date["mon"]."-".$date["year"];
             }
-            $search_condition = "";
-            $conditions = array($login_condition, $email_condition, $date_condition);
-            $last_exist = false;
-            for ($i = 0; $i < sizeof($conditions); $i++) {
-                if (!empty($conditions[$i])) {
-                    $search_condition = $search_condition.($last_exist ? " and " : "").$conditions[$i];
-                    $last_exist = true;
-                } else {
-                    $last_exist = false;
+            $k = ['login', 'email', 'reg_date'];
+            $v = [$login, $email, $str_date];
+            for ($i = 0; $i < min(sizeof($k), sizeof($v)); $i++) {
+                if (!empty($v[$i])) {
+                    $keys[] = $k[$i];
+                    $values[] = $v[$i];
                 }
             }
         }
         try {
-            $users = $db->getAllUsersBy($search_condition ?? null);
+            $users = $db->getAllUsersBy($keys, $values, 'LIKE');
         } catch (Exception $err) {
             echo $err->getMessage();
             return;

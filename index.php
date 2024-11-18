@@ -28,7 +28,8 @@
                     if (empty($_POST['login']) || empty($_POST["password"])) {
                         throw new Exception("has empty fields");
                     }
-                    $user = $db->getUserBy('login', $_POST['login']);                    
+
+                    $user = $db->getUserBy(['login'], [$_POST['login']]);                    
                     if (empty($user)) {
                         throw new Exception("login or password is not correct");
                     }

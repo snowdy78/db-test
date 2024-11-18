@@ -4,10 +4,10 @@
         $db = new DataBase();
         try {
             $db->removeUser($_GET['user']);
-        } catch (Exception $err) {
+            
+        } catch (PDOException $err) {
             echo $err->getMessage();
+            exit;
         }
     }
-    echo "<script>history.back();</script>";
-
 ?>
