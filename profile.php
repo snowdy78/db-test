@@ -61,9 +61,9 @@
             include_once "./php/database.php";
             $db = new DataBase();
             if (empty($_GET['user'])) {
-                $user = $db->getUserBy(['id'], [$_SESSION['auth']]);
+                $user = $db->getUserBy(['id'], [intval($_SESSION['auth'])], [PDO::PARAM_INT]);
             } else {
-                $user = $db->getUserBy(['id'], [$_GET['user']]);
+                $user = $db->getUserBy(['id'], [intval($_GET['user'])], [PDO::PARAM_INT]);
             }
             try {
                 $success = m($user);

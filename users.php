@@ -22,12 +22,16 @@
         $db = new DataBase();
         $keys = [];
         $values = [];
+        $types = [];
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
-            $login = empty($_POST["login"]) ? null : '%'.$_POST["login"].'%';
-            $email = empty($_POST["email"]) ? null : '%'.$_POST['email'].'%';
-            $date = empty($_POST["date"]) ? null : getdate(strtotime($_POST["date"]));
-            $str_date = null;
-            if (!empty($date)) {
+            if (!empty($_POST['login'])) {
+                $login =  '%'.$_POST["login"].'%';
+            }
+            if (!empty($_POST['email'])) {
+                $email = '%'.$_POST['email'].'%';
+            }
+            if (!empty($_POST['date'])) {
+                $date = getdate(strtotime($_POST["date"]));
                 $str_date = $date["mday"]."-".$date["mon"]."-".$date["year"];
             }
             $k = ['login', 'email', 'reg_date'];
@@ -40,7 +44,7 @@
             }
         }
         try {
-            $users = $db->getAllUsersBy($keys, $values, 'LIKE');
+            $users = $db->getAllUsersBy($keys, $values, $types, 'LIKE');
         } catch (Exception $err) {
             echo $err->getMessage();
             return;

@@ -97,10 +97,10 @@
         }
     }
     class DataBase extends \PDO {
-        public function __construct()
+        public function __construct(string $path = 'obvp.db')
         {
             try {
-                \PDO::__construct("sqlite:obvp.db");
+                \PDO::__construct("sqlite:$path");
 
                 $this->exec("CREATE TABLE IF NOT EXISTS users (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -119,44 +119,56 @@
                 echo $err->getMessage();
             }
         }
-        private function executeQuery(string $query, array $keys = [], array $values = [], string $operation = '=') {
+        private function executeQuery(string $query, array $keys = [], array $values = [], array $types = [], string $operation = '=') {
+            if (empty($types)) {
+                $types = array_fill(0, sizeof($keys), PDO::PARAM_STR);
+            } else if (!(
+                sizeof($types) == sizeof($keys) 
+                && sizeof($keys) == sizeof($values) 
+                && sizeof($values) == sizeof($types)) 
+            ) {
+                throw new Exception("sizeof types not equal to sizeof keys");
+            }
             if (!empty($keys)) {
                 $query .= " WHERE ";
-            }
-            $i = 0;
-            foreach ($keys as $key) {
-                $value = '?';
-                if ($key === 'reg_date') {
-                    
-                    $query .= "reg_date = ?";
+                for ($i = 0; $i < sizeof($keys); $i++) {
+                    $key = $keys[$i];
+                    $query .= "$key $operation :$key";
+                    if ($i != sizeof($keys) - 1) {
+                        $query .= " AND ";
+                    }
                 }
-                else 
-                    $query .= "$key $operation $value";
-                if ($i != sizeof($keys) - 1) {
-                    $query .= " AND ";
-                }
-                $i++;
             }
+
             $request = $this->prepare($query);
             if (empty($request)) {
                 throw new Exception("User not found");
             }
-            $request->execute($values);
+            for ($i = 0; $i < sizeof($types); $i++) {
+                if ($keys[$i] === 'id') {
+                    if (empty($types[$i])) {
+                        $types[$i] = PDO::PARAM_STR;
+                    }
+                    $request->bindParam($keys[$i], $values[$i], $types[$i]);
+                }
+            }
+            $request->execute();
+
             return $request;
         }
-        public function getUserBy(array $keys, array $values, $operation = '=') {
-            $request = $this->executeQuery("SELECT * FROM users", $keys, $values, $operation);
+            public function getUserBy(array $keys, array $values, array $types = [], $operation = '=') {
+            $request = $this->executeQuery("SELECT * FROM users", $keys, $values, $types, $operation);
             $rows = $request->fetchAll(PDO::FETCH_ASSOC);
-            if (empty($rows)) {
+            if (!isset($rows)) {
                 throw new Exception("User not found");
             }
             $user = $rows[0];
             return new User($this, $user["id"]);
         }
-        public function getAllUsersBy(array $keys, array $values, $operation = '=') {
-            $request = $this->executeQuery("SELECT * FROM users", $keys, $values, $operation);
+        public function getAllUsersBy(array $keys, array $values, array $types = [], $operation = '=') {
+            $request = $this->executeQuery("SELECT * FROM users", $keys, $values, $types, $operation);
             $users = $request->fetchAll();
-            if (empty($users)) {
+            if (!isset($users)) {
                 throw new Exception("User not found");    
             }
             $user_arr = array();
@@ -177,7 +189,6 @@
             $table_name = User::$table_name;
             $date = getdate();
             $str_date = $date["mday"]."-".$date["mon"]."-".$date["year"];
-            var_dump($str_date);
             $query = 
                 "INSERT INTO 
                 $table_name (login, email, password, reg_date) 
@@ -186,13 +197,11 @@
             return $request->execute(['login' => $login, 'email' => $email, 'sha1_password' => $sha1_password, "reg_date" => $str_date]);
         }
         public function removeUser($id) {
-            $this->beginTransaction();
             $table_name = User::$table_name;
-            $request = $this->prepare("DELETE FROM $table_name WHERE id=:id");
+            $request = $this->prepare("DELETE FROM `users` WHERE id=:id");
             $iid = intval($id);
             $request->bindParam(':id', $iid, PDO::PARAM_INT);
-            $request->execute();
-            $this->commit();
+            return $request->execute();
         }
     }
 ?>
