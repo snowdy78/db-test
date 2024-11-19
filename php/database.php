@@ -191,7 +191,8 @@
             $request = $this->prepare("DELETE FROM $table_name WHERE id=:id");
             $iid = intval($id);
             $request->bindParam(':id', $iid, PDO::PARAM_INT);
-            return;
+            $request->execute();
+            $this->commit();
         }
     }
 ?>
