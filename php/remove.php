@@ -4,7 +4,7 @@
         $db = new DataBase('../obvp.db');
         try {
             $db->removeUser($_GET['user']);
-            
+            echo "<script>history.back();</script>";
         } catch (PDOException $err) {
             echo $err->getMessage();
             exit;

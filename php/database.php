@@ -1,5 +1,6 @@
 <?php
     class IncorrectFile extends Exception {}
+    class UserNotFound extends Exception {}
     enum UserAccessLevel {
         case User; 
         case Admin;
@@ -156,7 +157,7 @@
 
             $request = $this->prepare($query);
             if (empty($request)) {
-                throw new Exception("User not found");
+                throw new Exception("request is empty");
             }
             for ($i = 0; $i < sizeof($types); $i++) {
                 if (!isset($types[$i])) {
@@ -171,17 +172,20 @@
         public function getUserBy(array $keys, array $values, array $types = [], $operation = '=') {
             $request = $this->executeQuery("SELECT * FROM users", $keys, $values, $types, $operation);
             $rows = $request->fetchAll(PDO::FETCH_ASSOC);
-            if (!isset($rows)) {
-                throw new Exception("User not found");
+            if (empty($rows)) {
+                throw new UserNotFound("User not found");
             }
             $user = $rows[0];
+            if (empty($user)) {
+                throw new UserNotFound("User not found");
+            }
             return new User($this, $user["id"]);
         }
         public function getAllUsersBy(array $keys, array $values, array $types = [], $operation = '=') {
             $request = $this->executeQuery("SELECT * FROM users", $keys, $values, $types, $operation);
             $users = $request->fetchAll();
             if (!isset($users)) {
-                throw new Exception("User not found");    
+                throw new UserNotFound("User not found");    
             }
             $user_arr = array();
             $i = 0;
@@ -193,9 +197,12 @@
         }
         public function addUser(string $login, string $email, string $password) {
             try {
-                $user = $this->getUserBy(['login', 'email'], [$login, $email]);
+                $user = $this->getUserBy(['email'], [$email]);
                 throw new Exception('User is already defined');
-            } catch (Exception $err) {}
+                
+            } catch (UserNotFound $err) {
+                
+            }
             $sha1_password = sha1($password);
 
             $table_name = User::$table_name;
