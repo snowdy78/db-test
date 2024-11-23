@@ -1,0 +1,6 @@
+# запрещенный доступ к страницам администрирования для обычных пользователей
+AuthType Basic
+AuthName "Restricted Access"
+AuthUserFile C:/xampp/.htpasswd
+Require user admin_user
+ErrorDocument 401 "Authorization Required"
