@@ -60,7 +60,7 @@
             echo "<td>$login</td>";
             echo "<td>$email</td>";
             echo "<td>$reg_date</td>";
-            echo "<td><a href='./profile.php?user=$id'>edit</a></td>";
+            echo "<td><a href='./profile/$id'>edit</a></td>";
             echo "<td><a href='./php/remove.php?user=$id'>remove</a></td>";
             echo "</tr>";
         }

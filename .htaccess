@@ -12,3 +12,10 @@ ErrorDocument 404 /db-test/404.html
 order deny,allow
 deny from 192.168.69.235
 allow from all
+
+RewriteEngine On
+RewriteBase /db-test/
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^profile/([0-9]+)/?$ profile.php?user=$1 [NC,L,QSA]
