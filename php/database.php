@@ -119,6 +119,20 @@
                 echo $err->getMessage();
             }
         }
+        /**
+         * Executes a SQL query with parameter bindings and returns the prepared statement.
+         *
+         * @param string $query The base SQL query to execute.
+         * @param array $keys An array of column names to use in the WHERE clause.
+         * @param array $values An array of values to bind to the corresponding keys.
+         * @param array $types An array of PDO parameter types for the values.
+         * @param string $operation The operation to use for comparison (default is '=').
+         *
+         * @return PDOStatement The prepared statement after execution.
+         *
+         * @throws Exception If the sizes of keys, values, and types arrays do not match.
+         * @throws Exception If the prepared statement cannot be created.
+         */
         private function executeQuery(string $query, array $keys = [], array $values = [], array $types = [], string $operation = '=') {
             if (empty($types)) {
                 $types = array_fill(0, sizeof($keys), PDO::PARAM_STR);
@@ -145,18 +159,16 @@
                 throw new Exception("User not found");
             }
             for ($i = 0; $i < sizeof($types); $i++) {
-                if ($keys[$i] === 'id') {
-                    if (empty($types[$i])) {
-                        $types[$i] = PDO::PARAM_STR;
-                    }
-                    $request->bindParam($keys[$i], $values[$i], $types[$i]);
+                if (!isset($types[$i])) {
+                    $types[$i] = PDO::PARAM_STR;
                 }
+                $request->bindParam(':'.$keys[$i], $values[$i], $types[$i]);
             }
             $request->execute();
 
             return $request;
         }
-            public function getUserBy(array $keys, array $values, array $types = [], $operation = '=') {
+        public function getUserBy(array $keys, array $values, array $types = [], $operation = '=') {
             $request = $this->executeQuery("SELECT * FROM users", $keys, $values, $types, $operation);
             $rows = $request->fetchAll(PDO::FETCH_ASSOC);
             if (!isset($rows)) {

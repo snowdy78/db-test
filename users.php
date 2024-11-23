@@ -26,18 +26,18 @@
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if (!empty($_POST['login'])) {
                 $login =  '%'.$_POST["login"].'%';
-            }
+            } else $login = null;
             if (!empty($_POST['email'])) {
                 $email = '%'.$_POST['email'].'%';
-            }
+            } else $email = null;
             if (!empty($_POST['date'])) {
                 $date = getdate(strtotime($_POST["date"]));
                 $str_date = $date["mday"]."-".$date["mon"]."-".$date["year"];
-            }
+            } else $str_date = null;
             $k = ['login', 'email', 'reg_date'];
             $v = [$login, $email, $str_date];
             for ($i = 0; $i < min(sizeof($k), sizeof($v)); $i++) {
-                if (!empty($v[$i])) {
+                if (isset($v[$i])) {
                     $keys[] = $k[$i];
                     $values[] = $v[$i];
                 }
