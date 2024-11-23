@@ -1,0 +1,14 @@
+# запрет на отображение содержимого каталога при отсутствии индексного файла
+Options -Indexes
+
+# компиляция php в html страницах
+DirectoryIndex index.php index.html index.htm
+AddHandler application/x-httpd-php .html
+
+# добавляем статическую страницу 404
+ErrorDocument 404 /db-test/404.html
+
+# запрещенный доступ с моего IP-адреса к сайту
+order deny,allow
+deny from 192.168.69.235
+allow from all
