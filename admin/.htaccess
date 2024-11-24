@@ -2,5 +2,5 @@
 AuthType Basic
 AuthName "Restricted Access"
 AuthUserFile C:/xampp/.htpasswd
-Require user admin_user
+Require user admin1
 ErrorDocument 401 "Authorization Required"
