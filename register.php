@@ -11,14 +11,16 @@
         include "./php/components/header.php";
     ?>
     <div class="container">
-
+        <script>
+            var n = Math.floor(Math.random() * 9);
+        </script>
         <h1>Registration</h1>
-        <form method="post">
-            <input type="text" placeholder="login..." name="login" id="login"/>
+        <form class="form-with-captcha" method="post" onsubmit="validateCaptcha(event, n);">
+            <input type="text" placeholder="login..." name="login" id="login" required/>
             <br>
-            <input type="email" placeholder="email" name="email" id="email">
+            <input type="email" placeholder="email" name="email" id="email" required/>
             <br>
-            <input type="password" placeholder="password..." name="password" id="password"/>
+            <input type="password" placeholder="password..." name="password" id="password" required/>
             <br>
             <?php 
                 function m() {
@@ -49,9 +51,22 @@
                     echo "<div class='error'>".$err->getMessage()."</div>";
                 }
             ?>
-    
-            <button type="submit">sign up</button>
+            <div class="captcha">
+                <div class="captcha-container">
+                    <div class="captcha-image">
+                        <script>
+                            window.onload = () => {
+                                generateCaptcha(n);
+                            };
+                        </script>
+                    </div>
+                </div>
+            </div>
+            Type a number of circles<br>
+            <input type="number" placeholder="captcha..." name="captcha" class="captcha-input" pattern="0-9" required/><br>
+            <input type="submit" class="captcha-submition" value="sign up"/>
             or <a href="./index.php">sign in</a>
+            
         </form>
     </div>
 </body>
