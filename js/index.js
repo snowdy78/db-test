@@ -28,7 +28,7 @@ function generateCaptcha(n) {
         const red = Math.floor(Math.random() * 256);
         const green = Math.floor(Math.random() * 256);
         const blue = Math.floor(Math.random() * 256);
-        const color = `rgba(${red}, ${green}, ${blue}, 0.25)`; // Прозрачность 0.5
+        const color = `rgba(${red}, ${green}, ${blue}, 0.5)`; // Прозрачность 0.5
 
         // Создаем круг
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
